@@ -23,6 +23,8 @@ interface WizardState {
   lead: Lead | null;
   result: AnalyzeResult | null;
   error: string | null;
+  /** How many times we've bounced the user to a framing retake this session. */
+  retakeCount: number;
 
   // transitions
   start: () => void;
@@ -51,6 +53,7 @@ const initial = {
   lead: null as Lead | null,
   result: null as AnalyzeResult | null,
   error: null as string | null,
+  retakeCount: 0,
 };
 
 export const useWizard = create<WizardState>((set, get) => ({
@@ -98,12 +101,13 @@ export const useWizard = create<WizardState>((set, get) => ({
   // Drop the current photo + read and return to the capture step for a retake
   // (e.g. when the lower face / neck wasn't framed well enough to assess).
   retakePhoto: () =>
-    set({
+    set((s) => ({
       imageBase64: null,
       landmarks: null,
       result: null,
       step: "consent",
-    }),
+      retakeCount: s.retakeCount + 1,
+    })),
 
   reset: () => set({ ...initial }),
 }));

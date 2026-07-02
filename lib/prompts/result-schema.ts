@@ -61,7 +61,7 @@ export const RESULT_SCHEMA = {
     framingAdequate: {
       type: "boolean",
       description:
-        "True only if the photo clearly shows the LOWER face — the jawline, under-chin and ideally the neck — well enough to assess for skin tightening. False if the photo shows mostly the upper/mid face, the jaw/chin/neck is cut off or out of frame, the head is at too steep an angle, the face is too small/far, or it's a screenshot or not a clean front-facing selfie. When false the person should retake their photo.",
+        "True whenever the photo shows the LOWER face — at least the jawline and chin — well enough to assess for skin tightening. BE LENIENT: a normal front-facing selfie is adequate even if the neck is partly out of frame, the lighting is ordinary, or the framing is imperfect. Set false ONLY when the lower face genuinely cannot be assessed at all: cropped above the mouth so the jaw/chin are not in frame, an extreme angle that entirely hides the jawline, a face far too small to make out, or not a real front-facing photo of a face (e.g. a screenshot of text or an object). Do not fail a usable selfie just because the neck is cut off. When false the person should retake their photo.",
     },
     headline: {
       type: "string",

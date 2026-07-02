@@ -26,6 +26,7 @@ export function ScanScreen() {
   const setLandmarksStore = useWizard((s) => s.setLandmarks);
   const completeScan = useWizard((s) => s.completeScan);
   const goToStep = useWizard((s) => s.goToStep);
+  const retakeCount = useWizard((s) => s.retakeCount);
   const reduce = useReducedMotion();
 
   const { detect, ready } = useFaceLandmarker();
@@ -87,11 +88,14 @@ export function ScanScreen() {
   // loader has run its minimum duration. If the API is slow, the loader holds.
   useEffect(() => {
     if (!result || !minElapsed) return;
-    // If the photo didn't clearly show the lower face / neck, route to a retake
-    // prompt instead of giving a read we can't stand behind.
-    if (result.usedPhoto && !result.framingAdequate) goToStep("retake");
+    // If the photo didn't clearly show the lower face, route to a retake prompt
+    // instead of giving a read we can't stand behind — but only ONCE. If the user
+    // has already retaken and it's still flagged, proceed anyway rather than
+    // trapping them in an endless "clearer photo, please" loop.
+    if (result.usedPhoto && !result.framingAdequate && retakeCount < 1)
+      goToStep("retake");
     else completeScan();
-  }, [result, minElapsed, completeScan, goToStep]);
+  }, [result, minElapsed, completeScan, goToStep, retakeCount]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center px-6 py-10">

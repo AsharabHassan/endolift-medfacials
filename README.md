@@ -10,7 +10,15 @@ A cinematic, standalone web-app lead magnet for **MEDfacials** (Truro, Cornwall 
 2. **On-device scan** — MediaPipe draws a 478-point face mesh as an "AI analysis" animation. The selfie never leaves the device for this step.
 3. **Quiz** — 10 one-at-a-time screening questions.
 4. **Lead gate** — name/email/phone + a *separate* marketing-consent checkbox. Submitting fires the lead to GoHighLevel.
-5. **Result** — an animated verdict (strong / good / consultation / explore-options), a personalised narrative, target areas, what-to-expect, and a booking CTA to Phorest.
+5. **Result** — an animated verdict (strong / good / consultation / explore-options), a personalised narrative, target areas, what-to-expect, and a booking CTA to the GoHighLevel consultation calendar.
+
+## The retargeting offer page — `/offer`
+
+A standalone landing page for ad retargeting (`noindex`): the **Endolift from £1,450** offer (usually from £2,000), trust factors, before/after sliders, an embedded Instagram patient testimonial, written reviews, an illustrative **Payl8r** finance calculator, and the **GoHighLevel booking calendar embedded directly in the page**. Secondary CTA sends visitors back to the AI scan (`/`).
+
+- Offer price, calendar URL, Instagram reel and finance links live in `OFFER` in `lib/constants.ts` (calendar overridable via `NEXT_PUBLIC_OFFER_CALENDAR_URL`).
+- The calendar is a **plain iframe on purpose** — GHL's `form_embed.js` hides the iframe until a postMessage handshake that doesn't always complete; see the comment in `components/offer/BookingCalendar.tsx`.
+- The finance calculator is **illustrative only** (Payl8r's published representative example: 2.50% fixed/month, 65.5% APR representative) and links to medfacials.com/easy-finance/ for real quotes.
 
 ### The safety model
 - `lib/scoring.ts` is the **authoritative** engine. Hard flags (pregnancy, infection, contraindications, severe laxity, etc.) override everything and route to a consultation. It never returns a flat "you don't qualify".
@@ -36,7 +44,7 @@ The **quiz-only path works with no configuration.** The photo + Claude narrative
 | `ANTHROPIC_API_KEY` | server | Claude Vision narrative |
 | `ANTHROPIC_MODEL` | server (optional) | defaults to `claude-sonnet-4-6` |
 | `GHL_WEBHOOK_URL` | server | GoHighLevel inbound webhook |
-| `NEXT_PUBLIC_PHOREST_BOOKING_URL` | public | booking link |
+| `NEXT_PUBLIC_BOOKING_URL` | public | booking link (GHL consultation calendar) |
 | `NEXT_PUBLIC_SITE_URL` | public | canonical / OG URL |
 
 ## Tests & build

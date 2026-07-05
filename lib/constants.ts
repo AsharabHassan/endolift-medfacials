@@ -24,9 +24,11 @@ export const TRUST_MARKERS = [
   "Doctor-led",
 ] as const;
 
-/** Booking + site URLs (overridable via public env at deploy). */
+/** Booking + site URLs (overridable via public env at deploy). Every booking
+ *  CTA (result screen, report email, PDF footer) goes to the GoHighLevel
+ *  Endolift consultation calendar. */
 export const BOOKING_URL =
-  process.env.NEXT_PUBLIC_PHOREST_BOOKING_URL ??
+  process.env.NEXT_PUBLIC_BOOKING_URL ??
   "https://links.medfacials.com/widget/bookings/endolift-free-online-consultation";
 
 export const SITE_URL =
@@ -111,6 +113,25 @@ export const ENDOLIFT_AREAS = [
 export const PRICE_GUIDE = {
   from: "£1,450",
   note: "Indicative — your exact plan is confirmed at consultation.",
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Retargeting offer page (/offer): promotional pricing, the embedded
+// GoHighLevel booking calendar, social proof and Payl8r finance links.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const OFFER = {
+  /** Promotional "from" price in GBP (numeric, used by the finance calculator). */
+  price: 1450,
+  /** Usual "from" price shown struck through next to the offer. */
+  usualPrice: 2000,
+  /** GoHighLevel booking calendar embedded on the offer page (defaults to the
+   *  same calendar every other booking CTA uses). */
+  calendarUrl: process.env.NEXT_PUBLIC_OFFER_CALENDAR_URL ?? BOOKING_URL,
+  /** Instagram reel — a MEDfacials patient's Endolift testimonial. */
+  instagramReelUrl: "https://www.instagram.com/reel/DJUhCJEMtsw/",
+  /** Clinic finance page (Payl8r calculator on medfacials.com). */
+  financeUrl: "https://medfacials.com/easy-finance/",
 } as const;
 
 export const DISCLAIMER =

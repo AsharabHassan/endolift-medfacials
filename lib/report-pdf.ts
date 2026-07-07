@@ -53,6 +53,7 @@ export interface ReportInput {
   faceImageAspect?: number; // width / height — preserved so the photo isn't stretched
   areas: ReportArea[];
   priceFrom: string;
+  priceByArea?: { label: string; price: string }[];
   priceNote: string;
   disclaimer: string;
 }
@@ -394,12 +395,28 @@ export function buildReportPdf(input: ReportInput): Blob {
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...P.heading);
   doc.text(input.priceFrom, M + doc.getTextWidth(`${T} from `), y);
+  y += 6;
+
+  if (input.priceByArea?.length) {
+    doc.setFontSize(9);
+    for (const a of input.priceByArea) {
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...P.body);
+      doc.text(a.label, M, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...P.heading);
+      doc.text(a.price, PW - M, y, { align: "right" });
+      y += 5;
+    }
+    y += 1;
+  }
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(...P.faint);
   const pn = doc.splitTextToSize(input.priceNote, CW);
-  doc.text(pn, M, y + 5);
-  y += 5 + pn.length * 4 + 6;
+  doc.text(pn, M, y);
+  y += pn.length * 4 + 6;
 
   ensure(20);
   doc.setFillColor(...P.panel);

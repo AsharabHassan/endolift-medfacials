@@ -200,6 +200,7 @@ export async function generateReportPdf(opts: {
     faceImageAspect,
     areas,
     priceFrom: PRICE_GUIDE.from,
+    priceByArea: PRICE_GUIDE.byArea.map((a) => ({ ...a })),
     priceNote: PRICE_GUIDE.note,
     disclaimer: DISCLAIMER,
   });

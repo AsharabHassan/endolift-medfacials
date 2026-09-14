@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Zap, Hourglass, Leaf, BadgePoundSterling } from "lucide-react";
-import { TREATMENT_PLANS } from "@/lib/constants";
+import { PRICE_GUIDE, TREATMENT_PLANS } from "@/lib/constants";
 import { formatGbp } from "@/lib/plan";
 
 const POINTS = [
@@ -42,17 +42,44 @@ export function WhatToExpect() {
           </motion.div>
         ))}
       </div>
-      <p className="mt-4 flex items-center gap-2 text-sm text-body">
-        <BadgePoundSterling size={16} className="text-sage-deep" />
-        <span>
-          Endolift packages at MEDfacials from{" "}
-          <span className="font-semibold text-heading">
-            {formatGbp(TREATMENT_PLANS.tighten.price)}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.55 }}
+        className="mt-4 overflow-hidden rounded-2xl border border-sage/20 bg-gradient-to-br from-white/80 to-cream/40 shadow-soft"
+      >
+        <div className="flex items-center gap-2.5 border-b border-sage/15 px-5 py-3.5">
+          <BadgePoundSterling size={16} className="text-peach-deep" />
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-heading/70">
+            Endolift pricing by area
           </span>
-          , with two complimentary HIFU tightening sessions.{" "}
-          <span className="text-body/70">See your recommended plan above.</span>
-        </span>
-      </p>
+        </div>
+
+        <ul className="px-5 py-4">
+          {PRICE_GUIDE.byArea.map((a) => (
+            <li
+              key={a.label}
+              className="flex items-baseline gap-3 py-2.5 first:pt-0 last:pb-0"
+            >
+              <span className="text-[15px] text-body">{a.label}</span>
+              <span
+                aria-hidden
+                className="mb-1 flex-1 border-b border-dotted border-sage/35"
+              />
+              <span className="font-serif text-lg text-heading">{a.price}</span>
+            </li>
+          ))}
+        </ul>
+
+        <p className="border-t border-sage/15 px-5 py-3 text-[13px] leading-relaxed text-body/70">
+          Packages from{" "}
+          <span className="font-medium text-heading">
+            {formatGbp(TREATMENT_PLANS.tighten.price)}
+          </span>{" "}
+          include the full lower face with two complimentary HIFU tightening
+          sessions — see your recommended plan above. {PRICE_GUIDE.note}
+        </p>
+      </motion.div>
     </div>
   );
 }

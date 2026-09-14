@@ -70,6 +70,7 @@ export interface ReportInput {
   areas: ReportArea[];
   /** Fallback "from" price line, used only when no plans are supplied. */
   priceFrom: string;
+  priceByArea?: { label: string; price: string }[];
   priceNote: string;
   /** The treatment plans to present (recommended first). */
   plans?: ReportPlan[];
@@ -405,6 +406,28 @@ export function buildReportPdf(input: ReportInput): Blob {
     }
   }
 
+  // Compact per-area reference list (mirrors the result screen's pricing card).
+  const priceByAreaBlock = () => {
+    if (!input.priceByArea?.length) return;
+    ensure(6 + input.priceByArea.length * 5);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(...P.faint);
+    doc.text(`${T.toUpperCase()} PRICING BY AREA`, M, y, { charSpace: 0.5 });
+    y += 5;
+    doc.setFontSize(9);
+    for (const a of input.priceByArea) {
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...P.body);
+      doc.text(a.label, M, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...P.heading);
+      doc.text(a.price, PW - M, y, { align: "right" });
+      y += 5;
+    }
+    y += 1;
+  };
+
   const plans = input.plans ?? [];
   if (plans.length > 0) {
     // ══ TREATMENT PLANS ═══════════════════════════════════════════════════
@@ -566,6 +589,8 @@ export function buildReportPdf(input: ReportInput): Blob {
       doc.text(note, M, y);
       y += note.length * 3.8 + 5;
     }
+    priceByAreaBlock();
+    y += 2;
   } else {
     ensure(16);
     doc.setDrawColor(...P.line);
@@ -579,12 +604,14 @@ export function buildReportPdf(input: ReportInput): Blob {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...P.heading);
     doc.text(input.priceFrom, M + doc.getTextWidth(`${T} from `), y);
+    y += 6;
+    priceByAreaBlock();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(...P.faint);
     const pn = doc.splitTextToSize(input.priceNote, CW);
-    doc.text(pn, M, y + 5);
-    y += 5 + pn.length * 4 + 6;
+    doc.text(pn, M, y);
+    y += pn.length * 4 + 6;
   }
 
   ensure(20);

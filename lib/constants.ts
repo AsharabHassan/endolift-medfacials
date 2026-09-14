@@ -113,6 +113,12 @@ export const ENDOLIFT_AREAS = [
 export const PRICE_GUIDE = {
   from: "£1,450",
   note: "Indicative — your exact plan is confirmed at consultation.",
+  /** Per-area indicative prices shown to clients. */
+  byArea: [
+    { label: "Under-eye", price: "£1,495" },
+    { label: "Neck", price: "£1,999" },
+    { label: "Jawline", price: "£1,999" },
+  ],
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

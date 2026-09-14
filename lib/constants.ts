@@ -1,4 +1,4 @@
-import type { Bucket } from "./types";
+import type { Bucket, PlanId } from "./types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clinic brand + contact constants (MEDfacials, Truro). Single source of truth
@@ -114,6 +114,77 @@ export const PRICE_GUIDE = {
   from: "£1,450",
   note: "Indicative — your exact plan is confirmed at consultation.",
 } as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The two treatment plans the report recommends between. Claude decides which
+// a face needs (lib/plan.ts); these objects drive the result screen, the PDF
+// and the GHL payload. Component list prices are from medfacials.com/price-list
+// (Endolift lower face & neck from £1,999; Aptos thread lift from £1,999;
+// HIFU double chin/jawline tightening from £299) so every "worth"/"saving"
+// figure is defensible. The HIFU value is deliberately the lowest lower-face
+// tier — raise eachValue if the clinic gifts the £699 lower face & neck session.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TreatmentPlan {
+  id: PlanId;
+  /** Short marketing name. */
+  name: string;
+  /** One-line positioning under the name. */
+  tagline: string;
+  /** Package price in GBP. */
+  price: number;
+  /** What the components cost booked separately (for the saving line). */
+  separately: number;
+  /** Who this plan is for, in the client's terms. */
+  bestFor: string;
+  /** What's included, in display order. */
+  includes: string[];
+  /** A complimentary extra, if any (rendered as a "free" badge). */
+  bonus?: { count: number; name: string; eachValue: number };
+  /** Short label used in GHL tags/notes. */
+  ghlLabel: string;
+}
+
+export const TREATMENT_PLANS: Record<PlanId, TreatmentPlan> = {
+  tighten: {
+    id: "tighten",
+    name: "Endolift Refine",
+    tagline: "Tighten and define — no scalpel, no downtime",
+    price: 1999,
+    separately: 1999 + 2 * 299,
+    bestFor:
+      "Faces with good underlying structure that need firming and definition along the jawline, under the chin and neck.",
+    includes: [
+      "Full Endolift® treatment — lower face, jawline & neck",
+      "Personal treatment plan with Dr Stolte's team",
+      "Aftercare and a 3-month review",
+    ],
+    bonus: {
+      count: 2,
+      name: "HIFU jawline & under-chin tightening",
+      eachValue: 299,
+    },
+    ghlLabel: "Endolift Refine £1,999 + 2 HIFU sessions",
+  },
+  lift: {
+    id: "lift",
+    name: "Endolift + Thread Lift",
+    tagline: "Lift and tighten together — the strongest non-surgical result",
+    price: 2999,
+    separately: 1999 + 1999,
+    bestFor:
+      "Faces showing real descent — softened jawline, early jowls or heaviness under the chin — that need repositioning as well as tightening.",
+    includes: [
+      "Full Endolift® treatment — lower face, jawline & neck",
+      "Doctor-led thread lift (Aptos® or PDO, chosen for your face)",
+      "Combined treatment plan, aftercare and a 3-month review",
+    ],
+    ghlLabel: "Endolift + Thread Lift £2,999",
+  },
+};
+
+export const PLAN_NOTE =
+  "Package prices are confirmed at your free consultation, where Dr Stolte's team will check suitability in person.";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Retargeting offer page (/offer): promotional pricing, the embedded

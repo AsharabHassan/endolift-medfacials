@@ -19,8 +19,38 @@ import {
   BOOKING_URL,
   PRICE_GUIDE,
   DISCLAIMER,
+  PLAN_NOTE,
+  type TreatmentPlan,
 } from "./constants";
-import { buildReportPdf, type ReportArea } from "./report-pdf";
+import { plansFor, planSaving, formatGbp } from "./plan";
+import {
+  buildReportPdf,
+  type ReportArea,
+  type ReportPlan,
+} from "./report-pdf";
+
+/** Flatten a plan into the formatted strings the PDF builder draws. */
+export function toReportPlan(
+  plan: TreatmentPlan,
+  recommended: boolean,
+): ReportPlan {
+  const saving = planSaving(plan);
+  return {
+    name: plan.name,
+    tagline: plan.tagline,
+    price: formatGbp(plan.price),
+    separately: saving > 0 ? formatGbp(plan.separately) : undefined,
+    saving: saving > 0 ? formatGbp(saving) : undefined,
+    bestFor: plan.bestFor,
+    includes: plan.includes,
+    bonus: plan.bonus
+      ? `${plan.bonus.count} × ${plan.bonus.name} — complimentary (worth ${formatGbp(
+          plan.bonus.count * plan.bonus.eachValue,
+        )})`
+      : undefined,
+    recommended,
+  };
+}
 
 // Mirrors the on-screen FaceConcernMap so the PDF matches what the client saw.
 const CORE: RegionKey[] = ["undereye", "cheeks", "jawline", "chin"];
@@ -126,6 +156,7 @@ export async function generateReportPdf(opts: {
 }): Promise<Blob> {
   const { result, imageBase64, imageMediaType, landmarks, lead } = opts;
   const meta = BUCKET_META[result.bucket];
+  const planSet = plansFor(result);
 
   let faceImageDataUrl: string | null = null;
   let faceImageAspect: number | undefined;
@@ -201,6 +232,11 @@ export async function generateReportPdf(opts: {
     areas,
     priceFrom: PRICE_GUIDE.from,
     priceNote: PRICE_GUIDE.note,
+    plans: planSet.plans.map((p) =>
+      toReportPlan(p, planSet.recommended?.id === p.id),
+    ),
+    planReason: planSet.recommended ? result.planReason : "",
+    planNote: PLAN_NOTE,
     disclaimer: DISCLAIMER,
   });
 }

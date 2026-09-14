@@ -20,6 +20,8 @@ const result: AnalyzeResult = {
   lowerFaceObscured: false,
   areaEnhancements: {},
   framingAdequate: true,
+  recommendedPlan: "tighten",
+  planReason: "",
   narrativeSource: "claude",
   narrative: {
     headline: "Endolift looks like a strong fit",
@@ -76,5 +78,27 @@ describe("buildGhlPayload", () => {
     expect(p.suitabilityBucket).toBe("consultation");
     expect(p.hardFlags).toContain("pregnancy");
     expect(p.tags).toContain("endolift-consultation");
+  });
+});
+
+describe("buildGhlPayload — recommended plan", () => {
+  it("carries the plan id, label, price and a plan tag", () => {
+    const p = buildGhlPayload(
+      lead,
+      { ...result, recommendedPlan: "lift", planReason: "Your jawline would benefit from lift." },
+    );
+    expect(p.recommendedPlan).toBe("lift");
+    expect(p.recommendedPlanLabel).toContain("Thread Lift");
+    expect(p.recommendedPlanPrice).toBe(2999);
+    expect(p.planReason).toContain("jawline");
+    expect(p.tags).toContain("endolift-plan-lift");
+  });
+
+  it("sends empty plan fields and no plan tag when nothing was recommended", () => {
+    const p = buildGhlPayload(lead, { ...result, recommendedPlan: null });
+    expect(p.recommendedPlan).toBe("");
+    expect(p.recommendedPlanLabel).toBe("");
+    expect(p.recommendedPlanPrice).toBeNull();
+    expect(p.tags.some((t) => t.startsWith("endolift-plan-"))).toBe(false);
   });
 });

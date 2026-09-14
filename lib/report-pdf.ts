@@ -30,6 +30,22 @@ export interface ReportArea {
   enhancement?: number | null;
 }
 
+export interface ReportPlan {
+  name: string;
+  tagline: string;
+  /** Formatted package price, e.g. "£1,999". */
+  price: string;
+  /** Formatted separately-booked total, e.g. "£3,998" — omitted when no saving. */
+  separately?: string;
+  /** Formatted saving, e.g. "£999". */
+  saving?: string;
+  bestFor: string;
+  includes: string[];
+  /** Complimentary extra line, e.g. "2 × HIFU jawline & under-chin tightening — complimentary (worth £598)". */
+  bonus?: string;
+  recommended: boolean;
+}
+
 export interface ReportInput {
   clinicName: string;
   treatmentName: string;
@@ -52,8 +68,15 @@ export interface ReportInput {
   faceImageDataUrl?: string | null;
   faceImageAspect?: number; // width / height — preserved so the photo isn't stretched
   areas: ReportArea[];
+  /** Fallback "from" price line, used only when no plans are supplied. */
   priceFrom: string;
   priceNote: string;
+  /** The treatment plans to present (recommended first). */
+  plans?: ReportPlan[];
+  /** Claude's one-line reason for the recommended plan. */
+  planReason?: string;
+  /** Small print under the plans. */
+  planNote?: string;
   disclaimer: string;
 }
 
@@ -382,24 +405,187 @@ export function buildReportPdf(input: ReportInput): Blob {
     }
   }
 
-  ensure(16);
-  doc.setDrawColor(...P.line);
-  doc.setLineWidth(0.2);
-  doc.line(M, y, PW - M, y);
-  y += 7;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(...P.body);
-  doc.text(`${T} from `, M, y);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...P.heading);
-  doc.text(input.priceFrom, M + doc.getTextWidth(`${T} from `), y);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(...P.faint);
-  const pn = doc.splitTextToSize(input.priceNote, CW);
-  doc.text(pn, M, y + 5);
-  y += 5 + pn.length * 4 + 6;
+  const plans = input.plans ?? [];
+  if (plans.length > 0) {
+    // ══ TREATMENT PLANS ═══════════════════════════════════════════════════
+    // The recommended plan leads (gold-framed, "recommended for you" pill),
+    // the other follows as the alternative. Each card is measured before it
+    // is drawn so it never splits across a page break.
+    const hasRec = plans.some((p) => p.recommended);
+    // Measure the reason with the font it will be drawn in.
+    doc.setFont("times", "italic");
+    doc.setFontSize(10.5);
+    const reasonLines: string[] = input.planReason
+      ? doc.splitTextToSize(input.planReason, CW - 4)
+      : [];
+
+    const PAD = 6;
+    const innerW = CW - PAD * 2;
+    const priceColW = 46;
+    const textW = innerW - priceColW - 4;
+
+    // Pre-measure every card so the heading + reason never strand at the foot
+    // of a page with the cards on the next one.
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.6);
+    const measured = plans.map((p) => {
+      const bestLines = doc.splitTextToSize(p.bestFor, textW) as string[];
+      const incLines = p.includes.map(
+        (s) => doc.splitTextToSize(s, textW - 5) as string[],
+      );
+      const incCount = incLines.reduce((n, l) => n + l.length, 0);
+      const bonusLines = p.bonus
+        ? (doc.splitTextToSize(p.bonus, textW - 12) as string[])
+        : [];
+      const cardH =
+        PAD +
+        5 + // name
+        4.6 + // tagline
+        3 +
+        bestLines.length * 4.2 +
+        3 +
+        incCount * 4.2 +
+        (bonusLines.length > 0 ? 2 + bonusLines.length * 4.2 + 1.5 : 0) +
+        PAD;
+      return { p, bestLines, incLines, bonusLines, cardH };
+    });
+
+    const headBlock = 16 + reasonLines.length * 4.9 + (reasonLines.length ? 3 : 0);
+    ensure(headBlock + measured[0].cardH + 4);
+    sectionTitle(hasRec ? "Your recommended plan" : "Your treatment plans", y);
+    y += 9;
+    if (reasonLines.length > 0) {
+      doc.setFont("times", "italic");
+      doc.setFontSize(10.5);
+      doc.setTextColor(...P.heading);
+      doc.text(reasonLines, M, y);
+      y += reasonLines.length * 4.9 + 3;
+    }
+
+    for (const { p, bestLines, incLines, bonusLines, cardH } of measured) {
+      ensure(cardH + 4);
+
+      // card
+      if (p.recommended) {
+        doc.setFillColor(...P.panel);
+        doc.setDrawColor(...P.gold);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(M, y, CW, cardH, 3, 3, "FD");
+      } else {
+        doc.setFillColor(...P.bg);
+        doc.setDrawColor(...P.line);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(M, y, CW, cardH, 3, 3, "FD");
+      }
+
+      let cy2 = y + PAD + 3.5;
+      const lx = M + PAD;
+
+      // name + pill
+      doc.setFont("times", "normal");
+      doc.setFontSize(14);
+      doc.setTextColor(...P.heading);
+      doc.text(p.name, lx, cy2);
+      if (p.recommended) {
+        tagPill(
+          "RECOMMENDED FOR YOU",
+          lx + doc.getTextWidth(p.name) + 3,
+          cy2 - 3.6,
+          P.gold,
+        );
+      } else {
+        tagPill("ALTERNATIVE", lx + doc.getTextWidth(p.name) + 3, cy2 - 3.6, P.faint);
+      }
+
+      // price column (right)
+      const rx = PW - M - PAD;
+      doc.setFont("times", "normal");
+      doc.setFontSize(19);
+      doc.setTextColor(p.recommended ? P.gold[0] : P.heading[0], p.recommended ? P.gold[1] : P.heading[1], p.recommended ? P.gold[2] : P.heading[2]);
+      doc.text(p.price, rx, cy2 + 1, { align: "right" });
+      if (p.separately && p.saving) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(...P.faint);
+        const sep = `Separately ${p.separately}`;
+        doc.text(sep, rx, cy2 + 5.2, { align: "right" });
+        // strike-through on the separately price
+        const sw = doc.getTextWidth(sep);
+        doc.setDrawColor(...P.faint);
+        doc.setLineWidth(0.25);
+        doc.line(rx - sw, cy2 + 4.3, rx, cy2 + 4.3);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...P.goldLt);
+        doc.text(`Save ${p.saving}`, rx, cy2 + 9, { align: "right" });
+      }
+
+      // tagline
+      cy2 += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.6);
+      doc.setTextColor(...P.gold);
+      doc.text(p.tagline, lx, cy2);
+
+      // best for
+      cy2 += 3 + 4.2;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.6);
+      doc.setTextColor(...P.body);
+      doc.text(bestLines, lx, cy2);
+      cy2 += (bestLines.length - 1) * 4.2 + 3 + 4.2;
+
+      // includes
+      doc.setTextColor(...P.heading);
+      for (const lines of incLines) {
+        doc.setFillColor(...P.gold);
+        doc.circle(lx + 1.2, cy2 - 1.1, 0.8, "F");
+        doc.text(lines, lx + 5, cy2);
+        cy2 += lines.length * 4.2;
+      }
+
+      // bonus — the pill resets font/colour, so set the text style AFTER it.
+      if (bonusLines.length > 0) {
+        cy2 += 2;
+        tagPill("FREE", lx, cy2 - 3.4, P.goldLt);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.6);
+        doc.setTextColor(...P.goldLt);
+        doc.text(bonusLines, lx + 12, cy2);
+        cy2 += bonusLines.length * 4.2;
+      }
+
+      y += cardH + 4;
+    }
+
+    if (input.planNote) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.6);
+      doc.setTextColor(...P.faint);
+      const note = doc.splitTextToSize(input.planNote, CW);
+      ensure(note.length * 3.8 + 4);
+      doc.text(note, M, y);
+      y += note.length * 3.8 + 5;
+    }
+  } else {
+    ensure(16);
+    doc.setDrawColor(...P.line);
+    doc.setLineWidth(0.2);
+    doc.line(M, y, PW - M, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...P.body);
+    doc.text(`${T} from `, M, y);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...P.heading);
+    doc.text(input.priceFrom, M + doc.getTextWidth(`${T} from `), y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...P.faint);
+    const pn = doc.splitTextToSize(input.priceNote, CW);
+    doc.text(pn, M, y + 5);
+    y += 5 + pn.length * 4 + 6;
+  }
 
   ensure(20);
   doc.setFillColor(...P.panel);

@@ -5,6 +5,7 @@ import { serverEnv } from "./env";
 import { SYSTEM_ENDOLIFT } from "./prompts/system-endolift";
 import { RESULT_SCHEMA } from "./prompts/result-schema";
 import { toRegionKey } from "./face-regions";
+import { isPlanId } from "./plan";
 import type { MediaType } from "@/store/wizard-store";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,6 +80,8 @@ export async function assessPhoto(params: {
     lowerFaceObscured: boolean;
     areaEnhancements: { area: string; enhancementPercent: number }[];
     framingAdequate: boolean;
+    liftNeed?: string;
+    planReason?: string;
     headline: string;
     narrative: string;
     observedAreas: string[];
@@ -126,6 +129,8 @@ export async function assessPhoto(params: {
     lowerFaceObscured: raw.lowerFaceObscured === true,
     areaEnhancements,
     framingAdequate: raw.framingAdequate !== false,
+    liftNeed: isPlanId(raw.liftNeed) ? raw.liftNeed : null,
+    planReason: typeof raw.planReason === "string" ? raw.planReason.trim() : "",
     narrative: {
       headline: raw.headline,
       narrative: raw.narrative,

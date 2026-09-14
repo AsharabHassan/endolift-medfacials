@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 import { Zap, Hourglass, Leaf, BadgePoundSterling } from "lucide-react";
-import { PRICE_GUIDE } from "@/lib/constants";
+import { TREATMENT_PLANS } from "@/lib/constants";
+import { formatGbp } from "@/lib/plan";
 
 const POINTS = [
   {
@@ -44,9 +45,12 @@ export function WhatToExpect() {
       <p className="mt-4 flex items-center gap-2 text-sm text-body">
         <BadgePoundSterling size={16} className="text-sage-deep" />
         <span>
-          Endolift at MEDfacials from{" "}
-          <span className="font-semibold text-heading">{PRICE_GUIDE.from}</span>.{" "}
-          <span className="text-body/70">{PRICE_GUIDE.note}</span>
+          Endolift packages at MEDfacials from{" "}
+          <span className="font-semibold text-heading">
+            {formatGbp(TREATMENT_PLANS.tighten.price)}
+          </span>
+          , with two complimentary HIFU tightening sessions.{" "}
+          <span className="text-body/70">See your recommended plan above.</span>
         </span>
       </p>
     </div>

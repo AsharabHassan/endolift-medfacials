@@ -49,6 +49,14 @@ export type HardFlag =
   | "dramatic-expectation"
   | "poor-health";
 
+/**
+ * Which treatment plan a face calls for. "tighten" = structure is fine and the
+ * skin needs firming (Endolift alone); "lift" = visible descent/jowling that
+ * needs repositioning as well (thread lift + Endolift). Chosen by Claude from
+ * the photo; see lib/plan.ts for the deterministic fallback.
+ */
+export type PlanId = "tighten" | "lift";
+
 /** Output of the deterministic scoring engine. */
 export interface ScoreResult {
   bucket: Bucket;
@@ -84,6 +92,10 @@ export interface AnalyzeResult extends ScoreResult {
   areaEnhancements: Record<string, number>;
   /** False when the photo doesn't clearly show the lower face/neck — prompt a retake. */
   framingAdequate: boolean;
+  /** The treatment plan recommended for this face; null when no photo was read. */
+  recommendedPlan: PlanId | null;
+  /** One warm sentence on why that plan suits this face (empty when none). */
+  planReason: string;
 }
 
 /** Lead captured at the gate. */
@@ -117,6 +129,10 @@ export interface PhotoAssessment {
   areaEnhancements: Record<string, number>;
   /** False when the photo doesn't clearly show the lower face/neck — prompt a retake. */
   framingAdequate: boolean;
+  /** Claude's read of whether this face needs tightening only or a genuine lift. */
+  liftNeed: PlanId | null;
+  /** One sentence explaining the plan choice, written for the client. */
+  planReason: string;
 }
 
 /** Request body for POST /api/lead. */

@@ -11,6 +11,7 @@ import { WhatToExpect } from "@/components/result/WhatToExpect";
 import { ResultsGallery } from "@/components/result/ResultsGallery";
 import { Testimonials } from "@/components/result/Testimonials";
 import { BookingCTA } from "@/components/result/BookingCTA";
+import { TreatmentPlan } from "@/components/result/TreatmentPlan";
 import { DisclaimerBanner } from "@/components/compliance/DisclaimerBanner";
 import { BUCKET_META, ENDOLIFT_AREAS } from "@/lib/constants";
 import { EASE } from "@/lib/motion";
@@ -133,8 +134,8 @@ export function ResultScreen() {
         <FaceConcernMap />
       </motion.div>
 
-      <motion.div {...reveal(0.68)} className="mt-10">
-        <BookingCTA label="Book Free Consultation" />
+      <motion.div {...reveal(0.68)} className="mt-12">
+        <TreatmentPlan />
       </motion.div>
 
       <motion.div {...reveal(0.7)} className="mt-8">

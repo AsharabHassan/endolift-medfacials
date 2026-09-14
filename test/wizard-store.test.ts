@@ -22,6 +22,8 @@ const result: AnalyzeResult = {
   lowerFaceObscured: false,
   areaEnhancements: {},
   framingAdequate: true,
+  recommendedPlan: "tighten",
+  planReason: "",
   narrativeSource: "claude",
   narrative: { headline: "h", narrative: "n", observedAreas: [], encouragement: "e" },
 };

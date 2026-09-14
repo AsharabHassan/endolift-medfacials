@@ -63,6 +63,17 @@ export const RESULT_SCHEMA = {
       description:
         "True whenever the photo shows the LOWER face — at least the jawline and chin — well enough to assess for skin tightening. BE LENIENT: a normal front-facing selfie is adequate even if the neck is partly out of frame, the lighting is ordinary, or the framing is imperfect. Set false ONLY when the lower face genuinely cannot be assessed at all: cropped above the mouth so the jaw/chin are not in frame, an extreme angle that entirely hides the jawline, a face far too small to make out, or not a real front-facing photo of a face (e.g. a screenshot of text or an object). Do not fail a usable selfie just because the neck is cut off. When false the person should retake their photo.",
     },
+    liftNeed: {
+      type: "string",
+      enum: ["tighten", "lift"],
+      description:
+        "Which treatment plan this face calls for. 'tighten' = the underlying structure and contour are still good and the skin mainly needs firming/definition (Endolift alone). 'lift' = there is visible descent that needs REPOSITIONING as well as tightening — sagging or softened jawline with early jowls, heaviness/fullness that has dropped below the jaw, or noticeable neck laxity (thread lift + Endolift). Choose 'lift' whenever the tissue has visibly dropped; choose 'tighten' when it is mild softening, texture or a soft under-chin on an otherwise well-held face. Judge only from this photo.",
+    },
+    planReason: {
+      type: "string",
+      description:
+        "One warm sentence (max 30 words), addressed to the person, explaining in cosmetic terms why that plan suits what you see — e.g. which areas would benefit from lift vs firming. UK English, no medical claims.",
+    },
     headline: {
       type: "string",
       description: "A warm, 6–10 word headline for the result screen.",
@@ -92,6 +103,8 @@ export const RESULT_SCHEMA = {
     "lowerFaceObscured",
     "areaEnhancements",
     "framingAdequate",
+    "liftNeed",
+    "planReason",
     "headline",
     "narrative",
     "observedAreas",

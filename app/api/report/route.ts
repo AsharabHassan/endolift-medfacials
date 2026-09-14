@@ -1,5 +1,6 @@
 import { deliverReportToGhl } from "@/lib/ghl-report";
-import { CLINIC, BOOKING_URL } from "@/lib/constants";
+import { CLINIC, BOOKING_URL, TREATMENT_PLANS } from "@/lib/constants";
+import { isPlanId, formatGbp } from "@/lib/plan";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,8 @@ interface ReportRequest {
   };
   suitabilityLabel?: string;
   score?: number;
+  /** "tighten" | "lift" | null — the plan the report recommends. */
+  recommendedPlan?: string | null;
   pdfBase64?: string;
 }
 
@@ -36,9 +39,23 @@ export async function POST(request: Request): Promise<Response> {
   const label = body.suitabilityLabel ?? "";
   const score = Number.isFinite(body.score) ? body.score : undefined;
 
+  const plan = isPlanId(body.recommendedPlan)
+    ? TREATMENT_PLANS[body.recommendedPlan]
+    : null;
+
   const safeName = (first || "client").replace(/[^\w-]/g, "");
   const fileName = `Endolift-Report-${safeName}.pdf`;
   const subject = `${first || "Your"} Endolift suitability report`;
+
+  const planHtml = plan
+    ? `<p style="margin:16px 0;padding:14px 16px;border:1px solid #efac88;border-radius:12px;background:#fff8ee">
+      <strong style="color:#c97c4a">Your recommended plan: ${plan.name} — ${formatGbp(plan.price)}</strong><br/>
+      ${plan.tagline}${
+        plan.bonus
+          ? `, including ${plan.bonus.count} complimentary ${plan.bonus.name} sessions`
+          : ""
+      }. Full details are in your report.</p>`
+    : "";
 
   const emailHtml = `
     <div style="font-family:Helvetica,Arial,sans-serif;color:#484c4c;line-height:1.6">
@@ -46,6 +63,7 @@ export async function POST(request: Request): Promise<Response> {
       <p>Thank you for taking the Endolift suitability analysis at
       <strong>${CLINIC.name}</strong> ${CLINIC.byline}. Your personalised report is
       attached as a PDF.</p>
+      ${planHtml}
       <p>It's a guide to help you prepare — your suitability is always confirmed in
       person. When you're ready, book your free, no-pressure consultation and we'll
       talk you through everything.</p>
@@ -56,6 +74,7 @@ export async function POST(request: Request): Promise<Response> {
   const noteParts = ["📄 Endolift suitability report"];
   if (label) noteParts.push(`— ${label}`);
   if (score !== undefined) noteParts.push(`(${score}/100)`);
+  if (plan) noteParts.push(`· Plan: ${plan.ghlLabel}`);
   const noteBody = `${noteParts.join(" ")}: {url}`;
 
   const result = await deliverReportToGhl({

@@ -1,5 +1,5 @@
 import type { AnalyzeResult, Lead } from "./types";
-import { BUCKET_META } from "./constants";
+import { BUCKET_META, TREATMENT_PLANS } from "./constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pure builder for the GoHighLevel inbound-webhook payload. No network here —
@@ -23,6 +23,12 @@ export interface GhlPayload {
   usedPhoto: boolean;
   narrativeSource: string;
   headline: string;
+  /** "tighten" | "lift" | "" (no photo read). */
+  recommendedPlan: string;
+  /** e.g. "Endolift + Thread Lift £2,999" — what the clinic should pitch. */
+  recommendedPlanLabel: string;
+  recommendedPlanPrice: number | null;
+  planReason: string;
   marketingConsent: boolean;
   submittedAt?: string;
 }
@@ -32,6 +38,9 @@ export function buildGhlPayload(
   result: AnalyzeResult,
   submittedAt?: string,
 ): GhlPayload {
+  const plan = result.recommendedPlan
+    ? TREATMENT_PLANS[result.recommendedPlan]
+    : null;
   return {
     firstName: lead.firstName,
     lastName: lead.lastName,
@@ -39,7 +48,11 @@ export function buildGhlPayload(
     email: lead.email,
     phone: lead.phone,
     source: "Endolift Suitability Analyzer",
-    tags: ["endolift-analyzer", `endolift-${result.bucket}`],
+    tags: [
+      "endolift-analyzer",
+      `endolift-${result.bucket}`,
+      ...(plan ? [`endolift-plan-${plan.id}`] : []),
+    ],
     suitabilityBucket: result.bucket,
     suitabilityLabel: BUCKET_META[result.bucket].label,
     suitabilityScore: result.score,
@@ -48,6 +61,10 @@ export function buildGhlPayload(
     usedPhoto: result.usedPhoto,
     narrativeSource: result.narrativeSource,
     headline: result.narrative.headline,
+    recommendedPlan: plan?.id ?? "",
+    recommendedPlanLabel: plan?.ghlLabel ?? "",
+    recommendedPlanPrice: plan?.price ?? null,
+    planReason: result.planReason ?? "",
     marketingConsent: lead.marketingConsent,
     submittedAt,
   };

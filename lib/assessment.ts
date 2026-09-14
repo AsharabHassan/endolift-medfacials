@@ -1,4 +1,5 @@
 import type { AnalyzeResult, Bucket, PhotoAssessment } from "./types";
+import { derivePlan } from "./plan";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Maps Claude's photo assessment into the full result, and provides a safe
@@ -44,6 +45,8 @@ export function buildResult(
     lowerFaceObscured: assessment.lowerFaceObscured,
     areaEnhancements: assessment.areaEnhancements,
     framingAdequate: assessment.framingAdequate,
+    recommendedPlan: derivePlan(assessment.liftNeed, assessment.suitability),
+    planReason: assessment.planReason ?? "",
   };
 }
 
@@ -69,5 +72,8 @@ export function genericFallbackResult(usedPhoto: boolean): AnalyzeResult {
     areaEnhancements: {},
     // An analysis failure isn't a framing problem — don't push a retake here.
     framingAdequate: true,
+    // No read → no recommendation; both plans are shown for the consultation.
+    recommendedPlan: null,
+    planReason: "",
   };
 }

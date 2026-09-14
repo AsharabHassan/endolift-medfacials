@@ -78,6 +78,7 @@ export async function submitReportToGhl(opts: {
         lead: opts.lead,
         suitabilityLabel: BUCKET_META[opts.result.bucket].label,
         score: opts.result.score,
+        recommendedPlan: opts.result.recommendedPlan,
         pdfBase64,
       }),
     });

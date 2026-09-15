@@ -193,15 +193,14 @@ export const PLAN_NOTE =
   "Package prices are confirmed at your free consultation, where Dr Stolte's team will check suitability in person.";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Retargeting offer page (/offer): promotional pricing, the embedded
+// Retargeting offer page (/offer): the two packages above, the embedded
 // GoHighLevel booking calendar, social proof and Payl8r finance links.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const OFFER = {
-  /** Promotional "from" price in GBP (numeric, used by the finance calculator). */
-  price: 1450,
-  /** Usual "from" price shown struck through next to the offer. */
-  usualPrice: 2000,
+  /** Entry package price in GBP — Endolift Refine (used by the hero and the
+   *  finance calculator's default). The page sells the two TREATMENT_PLANS. */
+  price: TREATMENT_PLANS.tighten.price,
   /** GoHighLevel booking calendar embedded on the offer page (defaults to the
    *  same calendar every other booking CTA uses). */
   calendarUrl: process.env.NEXT_PUBLIC_OFFER_CALENDAR_URL ?? BOOKING_URL,

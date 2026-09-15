@@ -77,7 +77,7 @@ export function FinanceCalculator() {
         />
         <div className="mt-1 flex justify-between text-[11px] text-body/60">
           <span>£500</span>
-          <span>Endolift from {gbp0.format(OFFER.price)}</span>
+          <span>Packages from {gbp0.format(OFFER.price)}</span>
           <span>£4,000</span>
         </div>
       </div>

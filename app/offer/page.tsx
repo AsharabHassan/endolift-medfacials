@@ -15,15 +15,18 @@ import { Button } from "@/components/ui/button";
 import { ResultsGallery } from "@/components/result/ResultsGallery";
 import { Testimonials } from "@/components/result/Testimonials";
 import { OfferHero } from "@/components/offer/OfferHero";
+import { OfferPlans } from "@/components/offer/OfferPlans";
 import { FinanceCalculator } from "@/components/offer/FinanceCalculator";
 import { BookingCalendar } from "@/components/offer/BookingCalendar";
 import { InstagramReel } from "@/components/offer/InstagramReel";
-import { CLINIC, OFFER } from "@/lib/constants";
+import { CLINIC, OFFER, TREATMENT_PLANS } from "@/lib/constants";
+import { formatGbp } from "@/lib/plan";
 
 export const metadata: Metadata = {
-  title: "Endolift from £1,450 · Book your free consultation · MEDfacials",
+  title:
+    "Endolift packages from £1,999 · Book your free consultation · MEDfacials",
   description:
-    "Limited-time Endolift offer at MEDfacials, Truro — from £1,450 (usually from £2,000). Doctor-led, CQC registered. Book your free online consultation.",
+    "Endolift packages at MEDfacials, Truro — Endolift Refine £1,999 with 2 complimentary HIFU sessions, or Endolift + Thread Lift £2,999. Doctor-led, CQC registered. Book your free online consultation.",
   // Ad retargeting landing page — keep it out of search results.
   robots: { index: false, follow: false },
 };
@@ -74,6 +77,9 @@ export default function OfferPage() {
 
       <main className="flex-1">
         <OfferHero />
+
+        {/* The two packages */}
+        <OfferPlans />
 
         {/* Trust factors */}
         <section className="px-6 py-12">
@@ -129,22 +135,21 @@ export default function OfferPage() {
           <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-2">
             <div>
               <p className="inline-flex rounded-full border border-peach/40 bg-peach-light/40 px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-peach-deep">
-                Limited-time offer
+                Spread the cost
               </p>
               <h2 className="mt-4 font-serif text-3xl leading-snug text-heading">
-                Endolift from £1,450
+                Packages from {formatGbp(OFFER.price)}
                 <span className="block text-xl text-body/70">
-                  usually from{" "}
-                  <span className="line-through decoration-peach-deep/60 decoration-2">
-                    £2,000
-                  </span>
+                  {TREATMENT_PLANS.tighten.name}{" "}
+                  {formatGbp(TREATMENT_PLANS.tighten.price)} ·{" "}
+                  {TREATMENT_PLANS.lift.name}{" "}
+                  {formatGbp(TREATMENT_PLANS.lift.price)}
                 </span>
               </h2>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-body">
-                One session, walk-in walk-out, minimal downtime — and with
-                Payl8r finance you can spread the cost into comfortable monthly
-                payments. Your exact price is confirmed at your free
-                consultation.
+                Walk-in, walk-out, minimal downtime — and with Payl8r finance
+                you can spread either package into comfortable monthly
+                payments. Your package is confirmed at your free consultation.
               </p>
               <a href="#book" className="mt-6 inline-block">
                 <Button size="lg">
@@ -165,7 +170,7 @@ export default function OfferPage() {
             <p className="mx-auto mt-2 max-w-lg text-center text-sm text-body/80">
               15 minutes, from your sofa. Dr Stolte&apos;s team will confirm
               your suitability, answer your questions and lock in your{" "}
-              offer price.
+              package price.
             </p>
             <div className="mt-7">
               <BookingCalendar />
